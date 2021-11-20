@@ -1,0 +1,510 @@
+<html>
+<head>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto">
+	<style>
+		@keyframes anim-fade {
+			0% { opacity: 0 }
+			100% { opacity: 1 }
+		}
+		
+		@keyframes anim-bounce {
+			0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 
+		   40% {transform: translateY(-30px);} 
+		   60% {transform: translateY(-15px);} 
+		}
+		@keyframes anim-pulse {
+			28%  { -webkit-transform: scale(125%)}
+			100%  { -webkit-transform: scale(100%)}
+		}
+		@keyframes anim-wave {
+			28%  { -webkit-transform: translatey(-3px)}
+		}
+		@keyframes anim-wiggle {
+			0% { transform: skewX(9deg); } 
+		   10% { transform: skewX(-8deg); } 
+		   20% { transform: skewX(7deg); } 
+		   30% { transform: skewX(-6deg); } 
+		   40% { transform: skewX(5deg); } 
+		   50% { transform: skewX(-4deg); } 
+		   60% { transform: skewX(3deg); } 
+		   70% { transform: skewX(-2deg); } 
+		   80% { transform: skewX(1deg); } 
+		   90% { transform: skewX(0deg); } 
+		   100% { transform: skewX(0deg); } 
+		}
+		@keyframes anim-wobble {
+			0% { transform: translateX(0%); } 
+		   15% { transform: translateX(-25%) rotate(-5deg); } 
+		   30% { transform: translateX(20%) rotate(3deg); } 
+		   45% { transform: translateX(-15%) rotate(-3deg); } 
+		   60% { transform: translateX(10%) rotate(2deg); }
+		   75% { transform: translateX(-5%) rotate(-1deg); }
+		   100% { transform: translateX(0%); } 
+		}
+
+		
+		.fade-in {
+			animation-name: anim-fade;
+			animation-duration: 1s;
+			animation-iteration-count: 1;
+		}
+		.fade-out {
+			animation-name: anim-fade;
+			animation-duration: 1s;
+			animation-iteration-count: 1;
+			animation-direction: reverse;
+			animation-fill-mode: both;
+			opacity: 0;
+		}
+		
+		.animate span {
+			display: inline-block;
+			transition-timing-function: linear;
+		}
+		.animate span.space {
+			width: .25em;
+		}
+		
+		.animate.bounce span {
+			animation: anim-bounce 4s infinite;
+		}
+		.animate.pulse span {
+			animation: anim-pulse 4s infinite;
+		}
+		.animate.wave span {
+			animation: anim-wave 1s infinite;
+		}
+		.animate.wiggle span {
+			animation: anim-wiggle 1s infinite;
+		}
+		.animate.wobble span {
+			animation: anim-wobble 2s infinite;
+		}
+		
+		#alert-container {
+			display: flex;
+			height: 100%;
+			align-items: center;
+			justify-content: center;
+		}
+		
+		.center-items {
+			display: flex;
+			justify-content: center;
+			text-align: center;
+		}
+		
+		body {
+			font-family: 'Roboto';
+		}
+		
+		.message {
+			font-weight: bolder;
+			font-size: 3em;
+			color: #fff;
+			text-shadow: 0px 0px 5px black;
+		}
+		
+		.sub-message {
+			font-weight: bold;
+			font-size: 2em;
+			color: #fff;
+			text-shadow: 0px 0px 5px black;
+		}
+	</style>
+</head>
+<body>
+	<audio preload="auto" id="audio-default">
+		<source src="alert.wav" type="audio/wav">
+	</audio>
+	<audio preload="auto" id="audio-arp">
+		<source src="arp.wav" type="audio/wav">
+	</audio>
+	<audio preload="auto" id="audio-oct">
+		<source src="oct.wav" type="audio/wav">
+	</audio>
+	
+    <div id="alert-container"></div>
+    <script src="scripts/tmi.min.js"></script>
+	
+    <script id="alert" type="text/html">
+        <div class="message">{message}</div>
+        <div class="sub-message">{sub_message}</div>
+		<div class="center-items">
+		<img src="default.gif" />
+		</div>
+    </script>
+	
+	<script id="alert-bit" type="text/html">
+        <div class="message animate wave center-items">{user} has cheered {count} bits</div>
+        <div class="sub-message center-items">{message}</div>
+		<div class="center-items">
+		<img src="default.gif" />
+		</div>
+    </script>
+	<script id="alert-bitpremium" type="text/html">
+        <div class="message animate bounce center-items">WOW! {user} has cheered {count} bits</div>
+        <div class="sub-message center-items">{message}</div>
+		<div class="center-items">
+		<img src="default.gif" />
+		</div>
+    </script>
+	<script id="alert-sub" type="text/html">
+        <div class="message center-items">{user} has subscribed for {count}</div>
+        <div class="sub-message center-items">{message}</div>
+		<div class="center-items">
+		<img src="default.gif" />
+		</div>
+    </script>
+	<script id="alert-gift" type="text/html">
+        <div class="message center-items">{user} has given {count} gift(s) to the community</div>
+		<div class="center-items">
+		<img src="default.gif" />
+		</div>
+    </script>
+	<script id="alert-raid" type="text/html">
+        <div class="message animate wave center-items">{user} is raiding with {count} viewers!</div>
+		<div class="center-items">
+		<img src="default.gif" />
+		</div>
+    </script>
+	<script src="config.js"></script>
+    <script>
+		const DEFAULTOPT = {
+                target: 'alert-container',
+                template: 'alert',
+                duration: 5000,
+                release: 1000,
+				audio: 'audio-default',
+				audioVolume: .5,
+				show: 'fade-in',
+				hide: 'fade-out',
+				tts: true
+            };
+		
+		const BITOPT = [{
+				template: 'alert-bit',
+				max: 1000
+			},
+			{
+				template: 'alert-bitpremium',
+				audio: 'audio-arp'
+			}];
+		const SUBOPT = {
+				template: 'alert-sub',
+				audio: 'audio-oct',
+			};
+		const GIFTOPT = {
+				template: 'alert-gift'
+			};
+		const RAIDOPT = {
+				template: 'alert-raid'
+			}
+
+		const heartbeatInterval = 1000 * 60; //ms between PING's 
+        const baseReconnectInterval = 1000 * 3; //ms to wait before reconnect
+        const maxReconnectInterval = 1000 * 60 * 2; //ms maximum reconnect;
+        const jitter = 500; //ms jitter as specified by docs
+
+        function ajax(options) {
+            return new Promise((resolve, reject) => {
+                let xhr = new XMLHttpRequest();
+                xhr.open(options.method, options.url);
+                if (options.headers) {
+                    for(const name in options.headers) {
+                        xhr.setRequestHeader(name, options.headers[name]);
+                    }
+                }
+
+                xhr.addEventListener("load", (e) => {
+                    resolve(xhr.response);
+                });
+                xhr.addEventListener("error", (e) => {
+                    reject(xhr.statusText);
+                });
+                xhr.addEventListener("abort", (e) => {
+                    reject(xhr.statusText);
+                });
+                xhr.send();
+            });
+        }
+
+        function nonce(length) {
+            var text = "";
+            var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            for (var i = 0; i < length; i++) {
+                text += possible.charAt(Math.floor(Math.random() * possible.length));
+            }
+            return text;
+        }        
+		
+		// websocket functions
+        let ws = null;
+        let reconnectInterval = baseReconnectInterval; // reconnectinterval
+        
+        function heartbeat() {
+            message = {
+                type: 'PING'
+            };
+            ws.send(JSON.stringify(message));
+        }
+
+        function listen(topic) {
+            message = {
+                type: 'LISTEN',
+                nonce: nonce(15),
+                data: {
+                    topics: topic,
+                    auth_token: auth_token
+                }
+            };
+            ws.send(JSON.stringify(message));
+        }
+
+        function reconnect(channel_id) {
+            setTimeout(connect, reconnectInterval + Math.floor(Math.random() * jitter), channel_id);
+            if (reconnectInterval < maxReconnectInterval) {
+                reconnectInterval = Math.min(reconnectInterval * 2, maxReconnectInterval);
+            }
+        }
+
+        function connect(channel_id) {
+			return new Promise((resolve, reject) => {
+				console.log(`connect to ${channel_id}`);
+				let heartbeatHandle;
+				ws = new WebSocket('wss://pubsub-edge.twitch.tv');
+
+				ws.onopen = function(event) {
+					heartbeat();
+					heartbeatHandle = setInterval(heartbeat, heartbeatInterval + Math.floor(Math.random() * jitter));
+					reconnectInterval = baseReconnectInterval;
+
+					listen([`channel-bits-events-v2.${channel_id}`, `channel-points-channel-v1.${channel_id}`, `channel-subscribe-events-v1.${channel_id}`]);
+				};
+
+				ws.onerror = function(error) {
+					console.log(error);
+				};
+
+				let gifts = {};
+				ws.onmessage = function(event) {
+					message = JSON.parse(event.data);
+					console.log(event);
+					switch (message.type)
+					{
+						case 'RECONNECT':
+							reconnect(channel_id);
+							break;
+						case 'MESSAGE':
+							let twitchdata = JSON.parse(message.data.message);
+							if (twitchdata.type == 'reward-redeemed')
+							{
+								let twitchmessage = twitchdata.data.redemption;
+								push({
+									message: `${twitchmessage.user.display_name} has redemeed ${twitchmessage.reward.title} for ${twitchmessage.reward.cost}`,
+									count: twitchmessage.reward.cost
+								});
+							}
+							else if (message.data.topic == `channel-bits-events-v2.${channel_id}`)
+							{
+								let twitchmessage = twitchdata.data;
+								push({
+									user: twitchmessage.user_name,
+									count: twitchmessage.bits_used,
+									message: twitchmessage.chat_message,
+									value: twitchmessage.bits_used
+								}, BITOPT);
+							}
+							else if (message.data.topic == `channel-subscribe-events-v1.${channel_id}`)
+							{
+								let twitchmessage = twitchdata;
+								if (twitchmessage.context == "sub" || twitchmessage.context == "resub")
+								{
+									let model = {
+										user: twitchmessage.display_name,
+										count: twitchmessage.cumulative_months,
+										value: twitchmessage.sub_plan
+									};
+									if (twitchmessage.sub_message.message)
+									{
+										model.message = twitchmessage.sub_message.message;
+									}
+									push(model, SUBOPT);
+								}
+								else if (twitchmessage.context == "subgift")
+								{
+									if (gifts[twitchmessage.user_id] === undefined)
+									{
+										gifts[twitchmessage.user_id] = {
+											display_name: twitchmessage.display_name,
+											count: 1
+										};
+										setTimeout(() => {
+											let name = gifts[twitchmessage.user_id].display_name;
+											let count = gifts[twitchmessage.user_id].count;
+											push({
+												user: name,
+												count: count,
+												value: count
+											}, GIFTOPT);
+
+											delete gifts[twitchmessage.user_id];
+										}, 2000);
+									}
+									else
+									{
+										gifts[twitchmessage.user_id].count += 1;
+									}
+								}
+							}
+							break;
+
+					}
+				};
+
+				ws.onclose = function() {
+					clearInterval(heartbeatHandle);
+					reconnect(channel_id);
+				};
+			});
+        }
+		
+		let queue = [];
+		let busy = false;
+        function push(data, options)
+        {
+			if (!busy)
+			{
+				busy = true;
+				let opt = {};
+				if (Array.isArray(options)) {
+					for (let item of options) {
+						if (data.value < item.max || !item.max) {
+							opt = { ...DEFAULTOPT, ...item };
+							break;
+						}
+					}
+				}
+				else {
+					opt = { ...DEFAULTOPT, ...options };
+				}
+
+				let ntemplate = document.getElementById(opt.template).innerHTML;
+				let res = ntemplate.replace(/(?<!\{)\{(?<variable>[^\{\}]+)\}/g, function(match) {
+					let variable = arguments[arguments.length - 1].variable;
+					return data[variable] || '';
+				});
+				let item = document.createElement('div');
+				item.innerHTML = res;
+
+				let ntarget = document.getElementById(opt.target);
+				ntarget.appendChild(item);
+				animate('animate');
+				
+				item.classList.add(opt.show);
+				
+				if (opt.audio)
+				{
+					let audio = document.getElementById(opt.audio);
+					audio.volume = opt.audioVolume;
+					audio.play();
+				}
+				
+				if (opt.tts && data.message) {
+					ajax({
+						method: "GET",
+						url: `http://localhost:1337/?value=${encodeURIComponent(data.message)}`
+					});
+				}
+				
+				setTimeout(() => {
+					item.classList.remove(opt.show);
+					
+					setTimeout(() => {
+						item.classList.add(opt.hide);
+						
+						setTimeout(() => {
+							ntarget.removeChild(item);
+							
+							busy = false;
+							if (queue.length > 0) {
+								let next = queue.shift();
+								push(next.data, next.options);
+							}
+						}, opt.release);
+					}, 1000);
+					
+					
+				}, opt.duration);
+			} else {
+				queue.push({ data: data, options: options });
+			}
+        }
+		
+		function animate(css) {
+		  let textElement = document.getElementsByClassName(css)[0];
+		  if (textElement) {
+			  var text = textElement.innerHTML;
+			  var len = text.length
+			  var wrapped = "";
+			  for (var i in text) {
+				if (text.charAt(i) == ' ')
+					wrapped += '<span class="space">' + text.charAt(i) + '</span>';
+				else
+					wrapped += '<span>' + text.charAt(i) + '</span>';
+			  }
+			  textElement.innerHTML = wrapped
+			  var delay = 0
+			  for (var i = 0; i < len; i++) {
+				var childQuery = `.${css} span:nth-child(${(i + 1)})`
+				document.querySelector(childQuery).style.animationDelay = delay + "s";
+				delay += 0.1;
+			  }
+		  }
+		}
+		
+        ajax({
+            method: "GET",
+            url: "https://api.twitch.tv/helix/users",
+            headers: {
+                "Authorization": `Bearer ${auth_token}`,
+				"Client-Id": `${clientId}`
+            }
+        }).then((response) => {
+            let r = JSON.parse(response);
+            if (r.data.length > 0) {
+                connect(r.data[0].id);
+				
+				//boilerplate chat monitoring
+				let client = new tmi.Client({
+					options: { debug: true, messagesLogLevel: "info" },
+					connection: {
+						reconnect: true,
+						secure: true
+					},
+					channels: [ r.data[0].login ]
+				});
+				
+				client.connect().catch(console.error);
+				
+				client.on('raided', (channel, username, viewers) => {
+					console.log('raid', channel, username, viewers);
+					push({
+						user: username,
+						count: 0+viewers
+					}, RAIDOPT);
+				});
+				
+            }
+        });
+		
+        var testdata = [
+            '{"type":"MESSAGE","data":{"topic":"channel-subscribe-events-v1.39658500","message":"{\\"benefit_end_month\\":0,\\"user_name\\":\\"casuallydane\\",\\"display_name\\":\\"casuallydane\\",\\"channel_name\\":\\"casuallydane\\",\\"user_id\\":\\"70802504\\",\\"channel_id\\":\\"39658500\\",\\"recipient_id\\":\\"19245703\\",\\"recipient_user_name\\":\\"xan09\\",\\"recipient_display_name\\":\\"Xan09\\",\\"time\\":\\"2020-03-17T15:53:19.36584074Z\\",\\"sub_message\\":{\\"message\\":\\"\\",\\"emotes\\":null},\\"sub_plan\\":\\"1000\\",\\"sub_plan_name\\":\\"Egg\\",\\"months\\":1,\\"context\\":\\"subgift\\"}"}}'
+            ,'{"type":"MESSAGE","data":{"topic":"channel-subscribe-events-v1.39658500","message":"{\\"benefit_end_month\\":0,\\"user_name\\":\\"casuallydane\\",\\"display_name\\":\\"casuallydane\\",\\"channel_name\\":\\"casuallydane\\",\\"user_id\\":\\"70802504\\",\\"channel_id\\":\\"39658500\\",\\"recipient_id\\":\\"44021964\\",\\"recipient_user_name\\":\\"armaerei\\",\\"recipient_display_name\\":\\"Armaerei\\",\\"time\\":\\"2020-03-17T15:53:19.478770866Z\\",\\"sub_message\\":{\\"message\\":\\"\\",\\"emotes\\":null},\\"sub_plan\\":\\"1000\\",\\"sub_plan_name\\":\\"Egg\\",\\"months\\":1,\\"context\\":\\"subgift\\"}"}}'
+            ,'{"type":"MESSAGE","data":{"topic":"channel-bits-events-v2.39658500","message":"{\\"data\\":{\\"user_name\\":\\"dhqk\\",\\"channel_name\\":\\"casuallydane\\",\\"user_id\\":\\"70802422\\",\\"channel_id\\":\\"39658500\\",\\"time\\":\\"2020-03-17T16:07:18.532072006Z\\",\\"chat_message\\":\\"Cheer1 Hello hear are some bits\\",\\"bits_used\\":1,\\"total_bits_used\\":6,\\"is_anonymous\\":false,\\"context\\":\\"cheer\\",\\"badge_entitlement\\":{\\"new_version\\":0,\\"previous_version\\":0}},\\"version\\":\\"1.0\\",\\"message_type\\":\\"bits_event\\",\\"message_id\\":\\"1af7ad56-b205-5a71-8512-289799097917\\"}"}}'
+			,'{"type":"MESSAGE","data":{"topic":"channel-bits-events-v2.39658500","message":"{\\"data\\":{\\"user_name\\":\\"dhqk\\",\\"channel_name\\":\\"casuallydane\\",\\"user_id\\":\\"70802422\\",\\"channel_id\\":\\"39658500\\",\\"time\\":\\"2020-03-17T16:07:18.532072006Z\\",\\"chat_message\\":\\"Cheer1 Hello hear are some bits\\",\\"bits_used\\":5000,\\"total_bits_used\\":6,\\"is_anonymous\\":false,\\"context\\":\\"cheer\\",\\"badge_entitlement\\":{\\"new_version\\":0,\\"previous_version\\":0}},\\"version\\":\\"1.0\\",\\"message_type\\":\\"bits_event\\",\\"message_id\\":\\"1af7ad56-b205-5a71-8512-289799097917\\"}"}}'
+			,'{"type":"MESSAGE","data":{"topic":"channel-subscribe-events-v1.39658500","message":"{\\"user_name\\":\\"tww2\\",\\"display_name\\":\\"TWW2\\",\\"channel_name\\":\\"mr_woodchuck\\",\\"user_id\\":\\"13405587\\",\\"channel_id\\":\\"89614178\\",\\"time\\":\\"2015-12-19T16:39:57-08:00\\",\\"sub_plan\\":\\"1000\\",\\"sub_plan_name\\":\\"Channel Subscription (mr_woodchuck)\\",\\"cumulative_months\\":9,\\"streak_months\\":3,\\"context\\":\\"resub\\",\\"is_gift\\":false,\\"sub_message\\":{\\"message\\":\\"A Twitch baby is born! KappaHD\\",\\"emotes\\":[{\\"start\\":23,\\"end\\":7,\\"id\\":2867}]}}"}}'
+        ];
+    </script>
+</body>
+</html>
