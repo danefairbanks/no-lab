@@ -1,0 +1,31 @@
+<html>
+<body>
+<script src="config.js"></script>
+<script>
+    const redirectURI = 'http://localhost:1337/';
+    const scope = 'bits:read+channel:read:redemptions+channel_subscriptions';
+
+    function nonce(length) {
+        var text = "";
+        var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        for (var i = 0; i < length; i++) {
+            text += possible.charAt(Math.floor(Math.random() * possible.length));
+        }
+        return text;
+    }
+
+    function authUrl() {
+        sessionStorage.twitchOAuthState = nonce(15);
+        var url = 'https://api.twitch.tv/kraken/oauth2/authorize' +
+            '?response_type=token' +
+            '&client_id=' + clientId + 
+            '&redirect_uri=' + redirectURI +
+            '&state=' + sessionStorage.twitchOAuthState +
+            '&scope=' + scope;
+        return url
+    }
+	
+	window.location.replace(authUrl());
+</script>
+</body>
+</html>
