@@ -33,11 +33,9 @@ After this you can open the [openalert.html](https://github.com/danefairbanks/no
 There are some test cases in there you can test through your browser console.  You can pull up this console with the key F12 in google chrome.
 
 To send a test just type any of the following code and hit enter.
-- **Gift Sub:**        ws.onmessage({ data: testdata[0] })
-- **Gift Sub:**        ws.onmessage({ data: testdata[1] })
-- **Cheer 1 Bit:**     ws.onmessage({ data: testdata[2] })
-- **Cheer 5000 Bits:** ws.onmessage({ data: testdata[3] })
-- **Sub:**             ws.onmessage({ data: testdata[4] })
+- **Gift Sub:**   nolab.test('gift', 1, 1)
+- **Cheer Bit:**  nolab.test('bit', 1000, 1)
+- **Sub:**        nolab.test('sub', 9, 3)
 
 After testing, just add the openalert.html as a local file browser source in OBS.
 
@@ -50,38 +48,41 @@ You are able to create multiple configurations on an event based on values.
 - Bits value is based on how many bits were cheered.
 - Raids value is based on how many viewers are joining the raid.
 
-Below is the default configuration located in the openalert.html
+Below is the default configuration located in the [config.js](https://github.com/danefairbanks/no-lab/blob/main/alert/config.js)
 
-		const DEFAULTOPT = {
-                target: 'alert-container',
-                template: 'alert',
-                duration: 5000,
-                release: 1000,
-                audio: 'audio-default',
-                audioVolume: .5,
-                show: 'fade-in',
-                hide: 'fade-out',
-                tts: true
-            };
-		
-		const BITOPT = [{
-				template: 'alert-bit',
-				max: 1000
-			},
-			{
-				template: 'alert-bitpremium',
-				audio: 'audio-arp'
-			}];
-		const SUBOPT = {
-				template: 'alert-sub',
-				audio: 'audio-oct',
-			};
-		const GIFTOPT = {
-				template: 'alert-gift'
-			};
-		const RAIDOPT = {
-				template: 'alert-raid'
-			}
+	const config = {
+	    default: {
+		target: 'alert-container',
+		template: 'alert',
+		duration: 5000,
+		release: 1000,
+		audio: 'audio-default',
+		audioVolume: .5,
+		show: 'fade-in',
+		hide: 'fade-out',
+		tts: true
+	    },
+	    pointOpts: {
+
+	    },
+	    bitOpts: [{
+		template: 'alert-bit',
+		max: 1000
+	    }, {
+		template: 'alert-bitpremium',
+		audio: 'audio-arp'
+	    }],
+	    subOpts: {
+		template: 'alert-sub',
+		audio: 'audio-oct',
+	    },
+	    giftOpts: {
+		template: 'alert-gift'
+	    },
+	    raidOpts: {
+		template: 'alert-raid'
+	    }
+	};
 
 There are several options that you can change for each event.
 - __target__: The id of the container that will house alerts.  Most likely will never change.
