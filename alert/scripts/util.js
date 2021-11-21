@@ -29,3 +29,25 @@ function nonce(length) {
 	}
 	return text;
 }
+
+function animate(css) {
+	let textElement = document.getElementsByClassName(css)[0];
+	if (textElement) {
+		var text = textElement.innerHTML;
+		var len = text.length
+		var wrapped = "";
+		for (var i in text) {
+			if (text.charAt(i) == ' ')
+				wrapped += '<span class="space">' + text.charAt(i) + '</span>';
+			else
+				wrapped += '<span>' + text.charAt(i) + '</span>';
+		}
+		textElement.innerHTML = wrapped
+		var delay = 0
+		for (var i = 0; i < len; i++) {
+			var childQuery = `.${css} span:nth-child(${(i + 1)})`
+			document.querySelector(childQuery).style.animationDelay = delay + "s";
+			delay += 0.1;
+		}
+	}
+}
